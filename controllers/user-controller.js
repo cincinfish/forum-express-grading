@@ -39,10 +39,12 @@ const userController = {
   },
   getUser: (req, res, next) => {
     return User.findByPk(req.params.id, {
-      include: [{
-        model: Comment,
-        include: Restaurant
-      }]
+      include: [
+        { model: Comment, include: Restaurant },
+        { model: User, as: 'Followers' },
+        { model: User, as: 'Followings' },
+        { model: Restaurant, as: 'FavoritedRestaurants' }
+      ]
     })
       .then(user => {
         user = user.toJSON()
@@ -170,7 +172,6 @@ const userController = {
           .map(user => ({
             ...user.toJSON(),
             followerCount: user.Followers.length,
-            // 判斷目前登入使用者是否已追蹤該 user 物件
             isFollowed: req.user.Followings.some(f => f.id === user.id)
           }))
           .sort((a, b) => b.followerCount - a.followerCount)
@@ -180,6 +181,7 @@ const userController = {
   },
   addFollowing: (req, res, next) => {
     const { userId } = req.params
+    if (Number(userId) === Number(req.user.id)) throw new Error("Can't following yourself!")
     Promise.all([
       User.findByPk(userId),
       Followship.findOne({
