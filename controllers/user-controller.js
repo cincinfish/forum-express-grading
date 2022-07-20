@@ -50,10 +50,10 @@ const userController = {
         user = user.toJSON()
         if (!user) throw new Error("User doesn't exist!")
         const set = new Set()
-        user.Comments = user.Comments.filter(user =>
+        user.Comments = user.Comments?.filter(user =>
           !set.has(user.Restaurant.id) ? set.add(user.Restaurant.id) : false
         )
-        res.render('users/profile', { user })
+        res.render('users/profile', { user: user })
       })
       .catch(err => next(err))
   },
